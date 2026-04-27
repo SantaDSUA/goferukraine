@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Лічильник шин V7</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #f8f9fa; padding: 15px; margin: 0; color: #333; }
+        .section-title { background: #007bff; color: white; padding: 12px; border-radius: 8px; margin: 20px 0 10px 0; font-weight: bold; }
+        
+        .item-row { 
+            display: flex; align-items: center; background: white; 
+            margin-bottom: 10px; border: 1px solid #dee2e6; border-radius: 10px; overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .add-btn { 
+            flex-grow: 1; padding: 18px 15px; border: none; background: white; 
+            font-size: 1.2em; font-weight: bold; text-align: left; cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .add-btn:active { background: #e7f1ff; }
+        .minus-btn { 
+            padding: 18px 25px; border: none; background: #fff5f5; 
+            color: #e03131; font-size: 1.5em; font-weight: bold; cursor: pointer; border-left: 1px solid #eee;
+        }
+        .count-display { color: #007bff; float: right; font-size: 1.2em; }
+
+        .unknown-box { background: #343a40 !important; }
+        .unknown-box .add-btn { background: #343a40; color: white; }
+        .unknown-box .count-display { color: #2ecc71; }
+
+        .footer-btns { margin-top: 30px; display: grid; gap: 10px; }
+        .full-report-btn { background: #28a745; color: white; border: none; padding: 20px; border-radius: 12px; font-size: 1.2em; font-weight: bold; cursor: pointer; width: 100%; }
+        .reset-btn { background: #6c757d; color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; }
+
+        /* Повноекраннии звіт */
+        #report-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 10000; padding: 20px; box-sizing: border-box;
+            overflow-y: auto;
+        }
+        .overlay-content { font-family: monospace; font-size: 1.2em; white-space: pre-wrap; margin-top: 20px; line-height: 1.5; }
+        .close-btn { background: #212529; color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h2 style="text-align:center;">Облік коліс</h2>
+    
+    <div class="section-title">ЛЕГКОВІ</div>
+    <div id="pass-list"></div>
+
+    <div class="section-title">МІКРОАВТОБУСИ</div>
+    <div id="bus-list"></div>
+
+    <div class="section-title">ВАНТАЖНІ</div>
+    <div id="truck-list"></div>
+
+    <div class="section-title" style="background:#343a40">ІНШЕ</div>
+    <div id="unknown-list"></div>
+
+    <div class="footer-btns">
+        <button class="full-report-btn" onclick="showOverlay()">ПОКАЗАТИ ЗВІТ НА ВЕСЬ ЕКРАН</button>
+        <button class="reset-btn" onclick="resetAll()">Скинути підрахунок</button>
+    </div>
+
+    <!-- Вікно звіту -->
+    <div id="report-overlay">
+        <button class="close-btn" onclick="hideOverlay()">← ПОВЕРНУТИСЯ ДО КНОПОК</button>
+        <div id="full-text" class="overlay-content"></div>
+        <p style="color:gray; font-size: 0.8em; margin-top: 20px;">Затисніть текст, щоб скопіювати иого</p>
+    </div>
+
+    <script>
+        const config = {
+            'pass-list': ['R13', 'R14', 'R15', 'R16', 'R17', 'R18', 'R19', 'R20', 'R21', 'R22'],
+            'bus-list': ['R16c', 'R17.5'],
+            'truck-list': ['R19.5', 'R22.5'],
+            'unknown-list': ['Unknown']
+        };
+        let counts = {};
+
+        function init() {
+            for (let listId in config) {
+                const container = document.getElementById(listId);
+                config[listId].forEach(r => {
+                    counts[r] = 0;
+                    const row = document.createElement('div');
+                    row.className = 'item-row' + (r === 'Unknown' ? ' unknown-box' : '');
+                    const label = (r === 'Unknown') ? 'НЕВІДОМИИ ТИП' : r;
+                    
+                    row.innerHTML = `
+                        <button class="add-btn" onclick="update('${r}', 1)">
+                            ${label} <span class="count-display" id="v-${r}">0</span>
+                        </button>
+                        <button class="minus-btn" onclick="update('${r}', -1)">−</button>
+                    `;
+                    container.appendChild(row);
+                });
+            }
+        }
+
+        function update(r, val) {
+            if (counts[r] + val < 0) return;
+            counts[r] += val;
+            document.getElementById('v-' + r).innerText = counts[r];
+        }
+
+        function showOverlay() {
+            let total = 0;
+            let report = "📋 ЗВІТ ПО КОЛЕСАХ\n";
+            report += "Дата: " + new Date().toLocaleString('uk-UA') + "\n";
+            report += "--------------------------\n";
+            
+            let hasData = false;
+            for (let r in counts) {
+                if (counts[r] > 0) {
+                    let label = (r === 'Unknown') ? 'Невідомии тип' : r;
+                    report += label + ": " + counts[r] + " шт.\n";
+                    total += counts[r];
+                    hasData = true;
+                }
+            }
+            
+            if (!hasData) { report += "Дані відсутні\n"; }
+            
+            report += "--------------------------\n";
+            report += "ЗАГАЛОМ: " + total + " шт.";
+
+            document.getElementById('full-text').innerText = report.replace(/\\n/g, '\n');
+            document.getElementById('report-overlay').style.display = 'block';
+            window.scrollTo(0,0);
+        }
+
+        function hideOverlay() {
+            document.getElementById('report-overlay').style.display = 'none';
+        }
+
+        function resetAll() {
+            if (confirm("Очистити все?")) {
+                for (let r in counts) {
+                    counts[r] = 0;
+                    const el = document.getElementById('v-' + r);
+                    if(el) el.innerText = "0";
+                }
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
