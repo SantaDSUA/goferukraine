@@ -43,6 +43,10 @@ summary {
   min-width: 0;
 }
 
+.mobile-address {
+  letter-spacing: 0.02em;
+}
+
 .header-phone {
   font-size: clamp(0.68rem, 3.15vw, 0.875rem);
   line-height: 1.25;
