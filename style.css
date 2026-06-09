@@ -8,15 +8,44 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
   margin: 0;
+  min-width: 0;
+  overflow-x: clip;
   font-family: "Manrope", sans-serif;
   background:
     radial-gradient(circle at top, rgba(249, 115, 22, 0.14), transparent 32%),
     linear-gradient(180deg, #020617 0%, #0f172a 48%, #020617 100%);
   color: var(--text-main);
+}
+
+img,
+iframe,
+svg {
+  max-width: 100%;
+}
+
+p,
+h1,
+h2,
+h3,
+a,
+summary {
+  overflow-wrap: break-word;
+}
+
+.site-nav,
+.site-brand,
+.site-nav__actions {
+  min-width: 0;
+}
+
+.header-phone {
+  font-size: clamp(0.68rem, 3.15vw, 0.875rem);
+  line-height: 1.25;
 }
 
 .hero-grid {
@@ -72,6 +101,7 @@ body {
 }
 
 .form-input {
+  box-sizing: border-box;
   width: 100%;
   border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 1rem;
@@ -98,6 +128,10 @@ details summary::-webkit-details-marker {
 }
 
 @media (max-width: 640px) {
+  .hero-grid {
+    background-size: 24px 24px;
+  }
+
   .brand-mark {
     min-width: auto;
   }
@@ -113,5 +147,34 @@ details summary::-webkit-details-marker {
 
   h1 {
     text-wrap: balance;
+  }
+}
+
+@media (max-width: 420px) {
+  .site-brand__details {
+    display: none;
+  }
+
+  .site-nav {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 340px) {
+  .site-nav {
+    padding-inline: 0.65rem;
+  }
+
+  .brand-mark__name {
+    font-size: 1.1rem;
+  }
+
+  .brand-mark__sub {
+    font-size: 0.52rem;
+    letter-spacing: 0.22em;
+  }
+
+  .header-phone {
+    padding-inline: 0.55rem;
   }
 }
